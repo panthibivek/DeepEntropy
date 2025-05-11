@@ -1,0 +1,6 @@
+transformers
+datasets
+torch
+bio-embeddings[all]
+sentencepiece
+protobuf
