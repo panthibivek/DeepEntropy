@@ -4,3 +4,4 @@ torch
 bio-embeddings[all]
 sentencepiece
 protobuf
+bio
