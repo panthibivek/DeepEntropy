@@ -5,10 +5,10 @@ import tensorflow as tf
 
 def encoder():
     input_embeddings = keras.layers.Input(shape=(None, 1024), name="embeddings")
-    conv_emb_1 = keras.layers.Conv1D(256, kernel_size=3, padding="same", activation="relu")(input_embeddings)
-    conv_emb_2 = keras.layers.Conv1D(64, kernel_size=3, padding="same", activation="relu")(conv_emb_1)
-    conv_emb_3 = keras.layers.Conv1D(32, kernel_size=3, padding="same", activation="relu")(conv_emb_2)
-    conv_emb_4 = keras.layers.Conv1D(32, kernel_size=3, padding="same", activation="relu")(conv_emb_3)
+    conv_emb_1 = keras.layers.Conv1D(64, kernel_size=3, padding="same", activation="relu")(input_embeddings)
+    conv_emb_2 = keras.layers.Conv1D(32, kernel_size=3, padding="same", activation="relu")(conv_emb_1)
+    conv_emb_3 = keras.layers.Conv1D(16, kernel_size=3, padding="same", activation="relu")(conv_emb_2)
+    conv_emb_4 = keras.layers.Conv1D(8, kernel_size=3, padding="same", activation="relu")(conv_emb_3)
 
 
     input_plddt = keras.layers.Input(shape=(None, 1), name="plddt")
@@ -22,7 +22,7 @@ def encoder():
 
 
 def NMR_head():
-    combined_features = keras.layers.Input(shape=(None, 40), name="combined_features")
+    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
     head_NMR_1 = keras.layers.Dense(64, activation="relu")(combined_features)
     head_NMR_2 = keras.layers.Dense(32, activation="relu")(head_NMR_1)
     output_head_NMR = keras.layers.Dense(1, activation="relu", name="g_scores")(head_NMR_2)
@@ -30,7 +30,7 @@ def NMR_head():
 
 
 def DisProt_head():
-    combined_features = keras.layers.Input(shape=(None, 40), name="combined_features")
+    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
     head_DisProt_1 = keras.layers.Dense(64, activation="relu")(combined_features)
     head_DisProt_2 = keras.layers.Dense(32, activation="relu")(head_DisProt_1)
     pooled_output = keras.layers.GlobalAveragePooling1D()(head_DisProt_2)
@@ -39,7 +39,7 @@ def DisProt_head():
 
 
 def SoftDis_head():
-    combined_features = keras.layers.Input(shape=(None, 40), name="combined_features")
+    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
     head_SoftDis_1 = keras.layers.Dense(64, activation="relu")(combined_features)
     head_SoftDis_2 = keras.layers.Dense(32, activation="relu")(head_SoftDis_1)
     output_head_SoftDis = keras.layers.Dense(1, activation="sigmoid", name="soft_disorder_frequency")(head_SoftDis_2)
