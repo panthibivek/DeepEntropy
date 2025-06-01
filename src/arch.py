@@ -72,9 +72,12 @@ class DeepEntropy(keras.Model):
     #     return [self.NMR_head_loss_tracker, self.DisProt_head_loss_tracker, self.SoftDis_head_loss_tracker]
 
 
-    def compile(self, optimizer, NMR_head_loss_fn, DisProt_head_loss_fn, SoftDis_head_loss_fn):
+    def compile(self, NMR_optimizer, DisProt_optimizer, SoftDis_optimizer, NMR_head_loss_fn, DisProt_head_loss_fn, SoftDis_head_loss_fn):
         super().compile()
-        self.optimizer = optimizer
+        self.NMR_optimizer = NMR_optimizer
+        self.DisProt_optimizer = DisProt_optimizer
+        self.SoftDis_optimizer = SoftDis_optimizer
+
         self.NMR_head_loss_fn = NMR_head_loss_fn
         self.DisProt_head_loss_fn = DisProt_head_loss_fn
         self.SoftDis_head_loss_fn = SoftDis_head_loss_fn
@@ -82,6 +85,8 @@ class DeepEntropy(keras.Model):
 
     def train_step(self, data):
         ((input_embeddings, input_plddt, target),) = data
+        # (input_data, target) = data
+        # (input_embeddings, input_plddt) = input_data
 
         if self.target_flag_=="g_scores":
             with tf.GradientTape() as tape:
@@ -91,7 +96,7 @@ class DeepEntropy(keras.Model):
 
             trainable_variables = self.encoder.trainable_variables + self.nmr_head_model.trainable_variables
             gradients = tape.gradient(g_loss, trainable_variables)
-            self.optimizer.apply_gradients(zip(gradients, trainable_variables))
+            self.NMR_optimizer.apply_gradients(zip(gradients, trainable_variables))
             self.NMR_head_loss_tracker.update_state(g_loss)
             self.NMR_head_loss.append(self.NMR_head_loss_tracker.result())
             loss_metrics =  {
@@ -106,7 +111,7 @@ class DeepEntropy(keras.Model):
 
             trainable_variables = self.encoder.trainable_variables + self.DisProt_head_model.trainable_variables
             gradients = tape.gradient(disorder_loss, trainable_variables)
-            self.optimizer.apply_gradients(zip(gradients, trainable_variables))
+            self.DisProt_optimizer.apply_gradients(zip(gradients, trainable_variables))
             self.DisProt_head_loss_tracker.update_state(disorder_loss)
             self.DisProt_head_loss.append(self.DisProt_head_loss_tracker.result())
             loss_metrics =  {
@@ -121,7 +126,7 @@ class DeepEntropy(keras.Model):
 
             trainable_variables = self.encoder.trainable_variables + self.softdis_head_model.trainable_variables
             gradients = tape.gradient(soft_disorder_loss, trainable_variables)
-            self.optimizer.apply_gradients(zip(gradients, trainable_variables))
+            self.SoftDis_optimizer.apply_gradients(zip(gradients, trainable_variables))
             self.SoftDis_head_loss_tracker.update_state(soft_disorder_loss)
             self.SoftDis_head_loss.append(self.SoftDis_head_loss_tracker.result())
             loss_metrics =  {
