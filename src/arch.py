@@ -5,61 +5,99 @@ import tensorflow as tf
 
 def encoder():
     input_embeddings = keras.layers.Input(shape=(None, 1024), name="embeddings")
-    conv_emb_1 = keras.layers.Conv1D(64, kernel_size=3, padding="same", activation="relu")(input_embeddings)
-    conv_emb_2 = keras.layers.Conv1D(32, kernel_size=3, padding="same", activation="relu")(conv_emb_1)
-    conv_emb_3 = keras.layers.Conv1D(16, kernel_size=3, padding="same", activation="relu")(conv_emb_2)
-    conv_emb_4 = keras.layers.Conv1D(8, kernel_size=3, padding="same", activation="relu")(conv_emb_3)
-
-
     input_plddt = keras.layers.Input(shape=(None, 1), name="plddt")
-    conv_plddt_1 = keras.layers.Conv1D(64, kernel_size=3, padding="same", activation="relu")(input_plddt)
-    conv_plddt_2 = keras.layers.Conv1D(32, kernel_size=3, padding="same", activation="relu")(conv_plddt_1)
-    conv_plddt_3 = keras.layers.Conv1D(16, kernel_size=3, padding="same", activation="relu")(conv_plddt_2)
-    conv_plddt_4 = keras.layers.Conv1D(8, kernel_size=3, padding="same", activation="relu")(conv_plddt_3)
 
-    merged = keras.layers.concatenate([conv_emb_4, conv_plddt_4], axis=-1)
-    return keras.Model(inputs=[input_embeddings, input_plddt], outputs=merged)
+    x = keras.layers.Conv1D(64, kernel_size=3, padding="same")(input_embeddings)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    y = keras.layers.Conv1D(64, kernel_size=3, padding="same")(input_plddt)
+    y = keras.layers.LayerNormalization()(y)
+    y = keras.layers.Activation("relu")(y)
+    y = keras.layers.Dropout(0.25)(y)
+
+    merged = keras.layers.concatenate([x, y], axis=-1)
+
+    z = keras.layers.Conv1D(32, kernel_size=3, padding="same")(merged)
+    z = keras.layers.LayerNormalization()(z)
+    z = keras.layers.Activation("relu")(z)
+    z = keras.layers.Dropout(0.25)(z)
+
+    z = keras.layers.Conv1D(32, kernel_size=3, padding="same")(z)
+    z = keras.layers.LayerNormalization()(z)
+    encoded = keras.layers.Activation("relu")(z)
+
+    return keras.Model(inputs=[input_embeddings, input_plddt], outputs=encoded)
 
 
 def NMR_head():
-    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
-    x = keras.layers.Dense(64, activation="relu")(combined_features)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    combined_features = keras.layers.Input(shape=(None, 32), name="combined_features")
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(32, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(16, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(8, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(16)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(8)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
     output_head_NMR = keras.layers.Dense(1, activation="sigmoid", name="g_scores")(x)
     return keras.Model(inputs=combined_features, outputs=output_head_NMR)
 
 
 def DisProt_head():
-    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
-    x = keras.layers.Dense(64, activation="relu")(combined_features)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    combined_features = keras.layers.Input(shape=(None, 32), name="combined_features")
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(32, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(16, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(8, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(16)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(8)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
     pooled_output = keras.layers.GlobalAveragePooling1D()(x)
     output_head_DisProt = keras.layers.Dense(1, activation="sigmoid", name="disorder_content")(pooled_output)
@@ -67,22 +105,36 @@ def DisProt_head():
 
 
 def SoftDis_head():
-    combined_features = keras.layers.Input(shape=(None, 16), name="combined_features")
-    x = keras.layers.Dense(64, activation="relu")(combined_features)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    combined_features = keras.layers.Input(shape=(None, 32), name="combined_features")
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(32, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(16, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
-    x = keras.layers.Dense(8, activation="relu")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Conv1D(32, kernel_size=3, padding="same")(combined_features)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(16)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
+
+    x = keras.layers.Dense(8)(x)
+    x = keras.layers.LayerNormalization()(x)
+    x = keras.layers.Activation("relu")(x)
+    x = keras.layers.Dropout(0.25)(x)
 
     output_head_SoftDis = keras.layers.Dense(1, activation="sigmoid", name="soft_disorder_frequency")(x)
     return keras.Model(inputs=combined_features, outputs=output_head_SoftDis)
@@ -110,7 +162,6 @@ class DeepEntropy(keras.Model):
         self.NMR_head_loss = []
         self.DisProt_head_loss = []
         self.SoftDis_head_loss = []
-        self.total_loss = []
 
     # @property
     # def metrics(self):
@@ -130,6 +181,10 @@ class DeepEntropy(keras.Model):
     def build_init(self, embedding_shape, plddt_shape):
         input_embeddings = tf.zeros(embedding_shape, dtype=tf.float32)
         input_plddt = tf.zeros(plddt_shape, dtype=tf.float32)
+        self.encoder.build([embedding_shape, plddt_shape])
+        self.nmr_head_model.build((None, 32))
+        self.DisProt_head_model.build((None, 32))
+        self.softdis_head_model.build((None, 32))
 
         # NMR
         with tf.GradientTape() as tape:
@@ -173,10 +228,8 @@ class DeepEntropy(keras.Model):
 
     @tf.function
     def train_step(self, data):
-        ((input_embeddings, input_plddt, target, mask_tf),_,_) = data
-        # ((input_embeddings, input_plddt, target, mask_tf),) = data
-        # (input_data, target) = data
-        # (input_embeddings, input_plddt) = input_data
+        # ((input_embeddings, input_plddt, target, mask_tf),_,_) = data
+        ((input_embeddings, input_plddt, target, mask_tf),) = data
 
         if self.target_flag_=="g_scores":
             with tf.GradientTape() as tape:
