@@ -37,11 +37,11 @@ def load_softDis_dataset(realtive_path : str = "data/SoftDis"):
 
 
 if __name__=="__main__":
-    NMR = load_NMR_dataset()
-    print(len(NMR))
+    # NMR = load_NMR_dataset()
+    # print(len(NMR))
 
-    disProt = load_DisProt_dataset()
-    print(len(disProt))
+    # disProt = load_DisProt_dataset()
+    # print(len(disProt))
 
     softDis = load_softDis_dataset()
-    print(len(softDis))
+    print(softDis[0].keys())
