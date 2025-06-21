@@ -7,3 +7,10 @@ de_env/
 .DS_Store
 .env/
 .idea/
+mmseqs/
+*.pt
+
+*.json
+*.fasta
+*.zip
+tmp/
